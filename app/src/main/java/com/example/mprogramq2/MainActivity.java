@@ -179,6 +179,21 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.On
         barChart.getDescription().setEnabled(false);
         barChart.animateY(800);
         barChart.invalidate();
+        // 🎨 Detect current theme mode
+        int nightModeFlags = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        boolean isDarkTheme = (nightModeFlags == Configuration.UI_MODE_NIGHT_YES);
+
+// 🎨 Adjust chart colors based on theme
+        int labelColor = isDarkTheme ? Color.WHITE : Color.BLACK;
+
+// Set text and axis colors
+        dataSet.setValueTextColor(labelColor);
+        barChart.getXAxis().setTextColor(labelColor);
+        barChart.getAxisLeft().setTextColor(labelColor);
+        barChart.getAxisRight().setTextColor(labelColor);
+        barChart.getLegend().setTextColor(labelColor);
+        barChart.getDescription().setTextColor(labelColor);
+
 
         // 6️⃣ Update product count text
         tvCount.setText("Products: " + entries.size());
@@ -277,6 +292,8 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.On
                     refreshList();
                 })
                 .show();
+        updateBarChart();
+
     }
 
     // long click to show options anchored menu
