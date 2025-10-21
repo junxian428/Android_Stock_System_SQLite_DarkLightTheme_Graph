@@ -332,6 +332,8 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.On
                         refreshList();
                     }
                 }).show();
+        updateBarChart();
+
     }
 
     // Update dialog
