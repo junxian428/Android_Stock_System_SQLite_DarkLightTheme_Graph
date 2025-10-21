@@ -103,47 +103,67 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.On
 
 
     private void loadChartData() {
-        List<Product> products = dbHelper.getAllProducts();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT name, price FROM products", null);
 
         List<BarEntry> entries = new ArrayList<>();
         List<String> labels = new ArrayList<>();
 
-        for (int i = 0; i < products.size(); i++) {
-            entries.add(new BarEntry((float) i, (float) products.get(i).getPrice()));
-            labels.add(products.get(i).getName());
+        int index = 0;
+        while (cursor.moveToNext()) {
+            String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+            float price = cursor.getFloat(cursor.getColumnIndexOrThrow("price"));
+
+            entries.add(new BarEntry(index, price));
+            labels.add(name);
+            index++;
+        }
+
+        cursor.close();
+        db.close();
+
+        // If no data → placeholder entry
+        if (entries.isEmpty()) {
+            entries.add(new BarEntry(0, 0));
+            labels.add("No Data");
         }
 
         BarDataSet dataSet = new BarDataSet(entries, "Product Prices");
         dataSet.setColors(ColorTemplate.MATERIAL_COLORS);
         dataSet.setValueTextSize(12f);
 
-        // ✅ Determine text color based on theme
+        // 🎨 Detect current theme (dark / light)
         int textColor = isDarkTheme() ? Color.WHITE : Color.BLACK;
         dataSet.setValueTextColor(textColor);
 
         BarData barData = new BarData(dataSet);
         barChart.setData(barData);
 
+        // 🧠 Chart appearance
         barChart.getDescription().setEnabled(false);
+        barChart.getLegend().setTextColor(textColor);
 
-        // ✅ Style X-axis and Y-axis
+        // 🧭 X-axis
         XAxis xAxis = barChart.getXAxis();
         xAxis.setGranularity(1f);
         xAxis.setValueFormatter(new IndexAxisValueFormatter(labels));
         xAxis.setTextColor(textColor);
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
 
+        // 🧮 Y-axis
         YAxis leftAxis = barChart.getAxisLeft();
         leftAxis.setTextColor(textColor);
-        barChart.getAxisRight().setTextColor(textColor);
+        leftAxis.setGridColor(isDarkTheme() ? Color.GRAY : Color.LTGRAY);
 
-        barChart.getLegend().setTextColor(textColor);
+        YAxis rightAxis = barChart.getAxisRight();
+        rightAxis.setTextColor(textColor);
+        rightAxis.setGridColor(isDarkTheme() ? Color.GRAY : Color.LTGRAY);
 
+        barChart.animateY(800);
         barChart.invalidate();
 
-        tvCount.setText("Products: " + products.size());
+        tvCount.setText("Products: " + entries.size());
     }
-
 
 
     private void updateBarChart() {
@@ -356,5 +376,6 @@ public class MainActivity extends AppCompatActivity implements ProductAdapter.On
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+        updateBarChart();
     }
 }
